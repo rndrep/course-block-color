@@ -113,12 +113,13 @@ function setBackgroundСolor(
 	elem,
 	degree = "135",
 	firstColor = firstColor,
-	secondColor = secondColor
+	secondColor = secondColor,
+	gradientStopValue = "200"
 ) {
 	elem.style.backgroundImage = `linear-gradient(
   ${degree}deg, 
   hsl(${firstColor.h} ${firstColor.s}% ${firstColor.l}%) 0%, 
-  hsl(${secondColor.h} ${secondColor.s}% ${secondColor.l}%) 200%)`;
+  hsl(${secondColor.h} ${secondColor.s}% ${secondColor.l}%) ${gradientStopValue}%)`;
 }
 
 function applyСolor(classBlocks, img, isDifferentColours = false) {
@@ -143,7 +144,13 @@ function applyСolor(classBlocks, img, isDifferentColours = false) {
 				classBlocks[i].classList.contains("course-block_footer")
 			) {
 				footerSecondColor.l = lightnessStep * (blocksLength - i);
-				setBackgroundСolor(classBlocks[i], "180", firstColor, footerSecondColor);
+				setBackgroundСolor(
+					classBlocks[i],
+					"180",
+					firstColor,
+					footerSecondColor,
+					"300"
+				);
 			}
 			// все остальные блоки
 			else {
@@ -168,7 +175,13 @@ function applyСolor(classBlocks, img, isDifferentColours = false) {
 				classBlocks[i].classList.contains("course-block_footer")
 			) {
 				footerSecondColor.l = lightnessStep * (blocksLength - i);
-				setBackgroundСolor(classBlocks[i], "180", firstColor, footerSecondColor);
+				setBackgroundСolor(
+					classBlocks[i],
+					"180",
+					firstColor,
+					footerSecondColor,
+					"300"
+				);
 			}
 			// все остальные блоки
 			else {
