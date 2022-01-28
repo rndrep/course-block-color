@@ -141,37 +141,6 @@ function applyСolor(classBlocks, img, isDifferentColours = false) {
 
 	if (img) secondColor = getAverageColor(img);
 
-	function giveColor() {
-		let footerSecondColor = JSON.parse(JSON.stringify(secondColor)),
-			moduleSecondColor = JSON.parse(JSON.stringify(secondColor));
-
-		for (let i = 0; i < blocksLength; i++) {
-			// первый блок - шапка
-			if (i == 0) {
-				setBackgroundСolor(classBlocks[i], "135", firstColor, secondColor);
-			}
-			// последний блок с классом "course-block_footer"
-			else if (
-				i == blocksLength - 1 &&
-				classBlocks[i].classList.contains("course-block_footer")
-			) {
-				footerSecondColor.l = lightnessStep * (blocksLength - i);
-				setBackgroundСolor(
-					classBlocks[i],
-					"180",
-					firstColor,
-					footerSecondColor,
-					"300"
-				);
-			}
-			// все остальные блоки
-			else {
-				secondColor.l = lightnessStep * (blocksLength - i);
-				setBackgroundСolor(classBlocks[i], "135", firstColor, secondColor);
-			}
-		}
-	}
-
 	//  есть картинка и блоки с одним цветом
 	if (img && !isDifferentColours) {
 		let footerSecondColor = JSON.parse(JSON.stringify(secondColor));
