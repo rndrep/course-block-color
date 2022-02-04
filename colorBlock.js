@@ -14,6 +14,7 @@ function checkPathname(path) {
 
 function colorBlock() {
 	let color = { h: 217, s: 35, l: 83 },
+		defaultColor = { h: 217, s: 35, l: 83 },
 		courseHeaderImgUrl = localStorage.getItem(
 			`courseHeaderImgUrl${window.location.search}`
 		),
@@ -23,58 +24,76 @@ function colorBlock() {
 		blocksOneColor = document.getElementsByClassName("theme_one-color"),
 		blocksDifferentColor = document.getElementsByClassName("theme_different-color");
 
-	// если картинки нет в хранилище или адрес картинки не совпадает
-	const checkImageExists = (item, imgUrl) => {
-		if (!blockThumb || blockThumb.children.length === 0) return "No blockThumb";
-		if (
-			imgUrl &&
-			item.tagName === "IMG" &&
-			imgUrl === `${item.getAttribute("src")}${window.location.search}`
-		)
-			return "The image exists and has not changed";
+	if (blocksOneColor.length !== 0)
+		applyTheme(
+			blocksOneColor,
+			createImageElement(blockThumb, courseHeaderImgUrl),
+			false
+		);
 
-		return false;
-	};
+	if (blocksDifferentColor.length !== 0)
+		applyTheme(
+			blocksDifferentColor,
+			createImageElement(blockThumb, courseHeaderImgUrl),
+			true
+		);
 
-	const createImageElement = (imgBlock, imgUrl) => {
-		if (imgBlock && imgBlock.children.length > 0) {
-			for (const item of imgBlock.children) {
-				if (!checkImageExists(item, imgUrl)) {
-					const img = document.createElement("img");
-					hasTheme = false;
-					img.src = item.src;
-
-					addToLocalStorage("courseHeaderImgUrl", img.src);
-					addToLocalStorage("hasTheme", hasTheme);
-
-					break;
-				}
-			}
-		}
-		return img;
-	};
-
-	const addToLocalStorage = (key, value) => {
-		localStorage.setItem(`${key}${window.location.search}`, value);
-	};
-
-	const applyTheme = (blocks, img, isDifferentColours) => {
-		if (hasTheme) return "Theme already applied";
+	function applyTheme(blocks, newImg, isDifferentColours) {
+		if (hasTheme && !newImg) return "Image exists and theme already applied";
 
 		if (blocks.length > 0) {
-			applyСolor(blocks, img, isDifferentColours);
+			applyСolor(blocks, newImg, isDifferentColours);
 		}
 
 		hasTheme = true;
 		addToLocalStorage("hasTheme", hasTheme);
-	};
+	}
 
-	applyTheme(blocksOneColor, createImageElement(blockThumb, courseHeaderImgUrl), false);
-	applyTheme(
-		blocksDifferentColor,
-		createImageElement(blockThumb, courseHeaderImgUrl),
-		true
-	);
+	function checkImageExists(item, imgLocalStorage) {
+		// картинки нет в курсе и в хранилище
+		if (!item && imgLocalStorage === "null") return true;
+
+		// картинка в курсе совпадает со значением в хранилище
+		if (
+			item &&
+			`${item.getAttribute("src")}${window.location.search}` === imgLocalStorage
+		)
+			return true;
+
+		return null;
+	}
+
+	function createImageElement(imgBlock, imgLocalStorage) {
+		// в курсе нет картинки
+		if (!imgBlock || imgBlock.children.length === 0) {
+			if (checkImageExists(null, imgLocalStorage)) return false;
+
+			addToLocalStorage("courseHeaderImgUrl", null);
+			// TODO: проверить если картинки нет применяется ли тема
+			// addToLocalStorage("hasTheme", hasTheme);
+			return null;
+		}
+
+		// в курсе есть картинка
+		for (const item of imgBlock.children) {
+			// картинка есть в хранилище не создаем элемент
+			if (checkImageExists(item, imgLocalStorage)) return false;
+
+			const img = document.createElement("img");
+			hasTheme = false;
+			img.src = item.src;
+
+			addToLocalStorage("courseHeaderImgUrl", img.src);
+			addToLocalStorage("hasTheme", hasTheme);
+
+			// break;
+			return img;
+		}
+	}
+
+	function addToLocalStorage(key, value) {
+		localStorage.setItem(`${key}${window.location.search}`, value);
+	}
 
 	function rgbToHsl(r, g, b) {
 		r /= 255;
@@ -113,7 +132,6 @@ function colorBlock() {
 
 	function getAverageColor(imgEl) {
 		const blockSize = 5, // only visit every 5 pixels
-			defaultRGB = { r: 49, g: 90, b: 155 }, // for non-supporting envs
 			canvas = document.createElement("canvas"),
 			context = canvas.getContext && canvas.getContext("2d");
 
@@ -126,7 +144,7 @@ function colorBlock() {
 			count = 0;
 
 		if (!context) {
-			return defaultRGB;
+			return null;
 		}
 
 		height = canvas.height =
@@ -138,10 +156,8 @@ function colorBlock() {
 		try {
 			data = context.getImageData(0, 0, width, height);
 		} catch (e) {
-			/* security error, img on diff domain */ console.log(
-				"security error, img on diff domain"
-			);
-			return defaultRGB;
+			console.log("security error, img on diff domain");
+			return null;
 		}
 
 		length = data.data.length;
@@ -158,12 +174,16 @@ function colorBlock() {
 		rgb.g = ~~(rgb.g / count);
 		rgb.b = ~~(rgb.b / count);
 
-		let hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+		hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
 
 		return hsl;
 	}
 
 	function setBackgroundСolor(elem, color = defaultColor, alfa = 30) {
+		if (color.s < 20) {
+			color.s = 20;
+			alfa = 40;
+		}
 		elem.style.backgroundColor = `hsl(${color.h} ${color.s}% ${color.l}% / ${alfa}%)`;
 	}
 
@@ -172,6 +192,8 @@ function colorBlock() {
 			hueStep = ~~(360 / classBlocks.length);
 
 		if (img) color = getAverageColor(img);
+
+		if (!color) color = defaultColor;
 
 		// есть картинка и блоки с одним цветом
 		if (img && !isDifferentColours) {
@@ -219,7 +241,7 @@ function colorBlock() {
 					setBackgroundСolor(classBlocks[i], moduleColor);
 				}
 			}
-		} else if (isDifferentColours) {
+		} else if (!img && isDifferentColours) {
 			let footerColor = JSON.parse(JSON.stringify(color)),
 				moduleColor = JSON.parse(JSON.stringify(color));
 
