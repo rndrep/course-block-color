@@ -188,92 +188,58 @@ function colorBlock() {
 	}
 
 	function applyСolor(classBlocks, img, isDifferentColours = false) {
-		const lightnessStep = ~~(100 / classBlocks.length),
-			hueStep = ~~(360 / classBlocks.length);
+		this.prop = "";
+		this.alpha = 30;
+		this.step = ~~(100 / classBlocks.length);
+		this.needChangeBodyColor = true;
+		this.needChangeFooterColor = false;
 
-		if (img) color = getAverageColor(img);
+		if (img) this.color = getAverageColor(img);
+		if (!this.color) this.color = defaultColor;
 
-		if (!color) color = defaultColor;
-
-		// есть картинка и блоки с одним цветом
 		if (img && !isDifferentColours) {
-			let footerColor = JSON.parse(JSON.stringify(color));
-
-			for (let i = 0; i < classBlocks.length; i++) {
-				// первый блок - шапка
-				if (i == 0) {
-					setBackgroundСolor(classBlocks[i], color);
-				}
-				// последний блок с классом "course-block_footer"
-				else if (
-					i == classBlocks.length - 1 &&
-					classBlocks[i].classList.contains("course-block_footer")
-				) {
-					footerColor.l = lightnessStep * (classBlocks.length - i);
-					setBackgroundСolor(classBlocks[i], footerColor);
-				}
-				// все остальные блоки
-				else {
-					color.l = lightnessStep * (classBlocks.length - i);
-					setBackgroundСolor(classBlocks[i], color);
-				}
-			}
-			//  блоки с разными цветами с картинкой
+			this.prop = "l";
+			this.needChangeFooterColor = true;
+			// step = ~~(100 / classBlocks.length),
 		} else if (img && isDifferentColours) {
-			let footerColor = JSON.parse(JSON.stringify(color)),
-				moduleColor = JSON.parse(JSON.stringify(color));
-
-			for (let i = 0; i < classBlocks.length; i++) {
-				// первый блок - шапка
-				if (i == 0) {
-					setBackgroundСolor(classBlocks[i], color);
-				}
-				// последний блок с классом "course-block_footer"
-				else if (
-					i == classBlocks.length - 1 &&
-					classBlocks[i].classList.contains("course-block_footer")
-				) {
-					setBackgroundСolor(classBlocks[i], footerColor);
-				}
-				// все остальные блоки
-				else {
-					moduleColor.h = hueStep * (classBlocks.length - i);
-					setBackgroundСolor(classBlocks[i], moduleColor);
-				}
-			}
+			this.prop = "h";
+			this.step = ~~(360 / classBlocks.length);
 		} else if (!img && isDifferentColours) {
-			let footerColor = JSON.parse(JSON.stringify(color)),
-				moduleColor = JSON.parse(JSON.stringify(color));
-
-			for (let i = 0; i < classBlocks.length; i++) {
-				// первый блок - шапка
-				if (i == 0) {
-					setBackgroundСolor(classBlocks[i], color, 100);
-				}
-				// последний блок с классом "course-block_footer"
-				else if (
-					i == classBlocks.length - 1 &&
-					classBlocks[i].classList.contains("course-block_footer")
-				) {
-					setBackgroundСolor(classBlocks[i], footerColor, 100);
-				}
-				// все остальные блоки
-				else {
-					moduleColor.h = hueStep * (classBlocks.length - i);
-					setBackgroundСolor(classBlocks[i], moduleColor, 100);
-				}
-			}
+			this.prop = "h";
+			this.alpha = 100;
+			this.step = ~~(360 / classBlocks.length);
 		} else {
-			// нет картинки, второй цвет по умолчанию
-			for (let i = 0; i < classBlocks.length; i++) {
-				if (
-					i == classBlocks.length - 1 &&
-					classBlocks[i].classList.contains("course-block_footer")
-				) {
-					setBackgroundСolor(classBlocks[i], color);
-				}
+			this.needChangeBodyColor = false;
+		}
 
-				setBackgroundСolor(classBlocks[i], color);
+		// первый блок - шапка
+		paintHead(classBlocks);
+
+		paintBody(classBlocks);
+
+		// последний блок с классом "course-block_footer"\
+		paintFooter(classBlocks);
+
+		function paintHead(classBlocks) {
+			setBackgroundСolor(classBlocks[0], this.color, this.alpha);
+		}
+
+		function paintBody(classBlocks) {
+			for (let i = 1; i < classBlocks.length - 1; i++) {
+				if (this.needChangeBodyColor) {
+					this.color[this.prop] = this.step * (classBlocks.length - i);
+				}
+				setBackgroundСolor(classBlocks[i], this.color, this.alpha);
+			}
+		}
+
+		function paintFooter(classBlocks) {
+			i = classBlocks.length - 1;
+			if (classBlocks[i].classList.contains("course-block_footer")) {
+				if (this.needChangeFooterColor) {
+					this.color[this.prop] = this.step * (classBlocks.length - i);
+				}
+				setBackgroundСolor(classBlocks[i], this.color, this.alpha);
 			}
 		}
 	}
